@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+[ -z "${ASDF_INSTALL_TYPE+x}" ] && echo "ASDF_INSTALL_TYPE is required" && exit 1
+[ -z "${ASDF_INSTALL_VERSION+x}" ] && echo "ASDF_INSTALL_VERSION is required" && exit 1
+[ -z "${ASDF_INSTALL_PATH+x}" ] && echo "ASDF_INSTALL_PATH is required" && exit 1
+
+install() {
+  set -x
+  local install_type=$1
+  [ "$install_type" != "version" ] && echo "intall type, $install_type, is not supported" && exit 1
+
+  local version=$2
+  local install_path=$3
+
+  if [ "$TMPDIR" = "" ]; then
+    local tmp_download_dir=$(mktemp -d -t elm_build_XXXXXX)
+  else
+    local tmp_download_dir=$TMPDIR
+  fi
+
+  local bin_install_path="$install_path/bin"
+  local bin_path="${bin_install_path}/aks-engine"
+
+  local platform
+  [ "Linux" = "$(uname)" ] && platform="linux" || platform="darwin"
+  local arch
+  [ "x86_64" = "$(uname -m)" ] && arch="amd64" || arch="386"
+
+  local tarball_dir_name="aks-engine-v${version}-${platform}-${arch}"
+  local tarball_file_name="$tarball_dir_name.tar.gz"
+  local tmp_download_file="$tmp_download_dir/$tarball_file_name"
+
+  local download_url
+  download_url="https://github.com/Azure/aks-engine/releases/download/v${version}/$tarball_file_name"
+
+  mkdir -p "${bin_install_path}"
+
+  echo "Downloading aks-engine from ${download_url}"
+  curl -sL "$download_url" -o "$tmp_download_file"
+
+  mkdir -p "${tmp_download_dir}${tarball_dir_name}"
+  tar zxf "$tmp_download_file" -C "$tmp_download_dir" --strip-components=1 || exit 1
+  mv "$tmp_download_dir/aks-engine" "$bin_path"
+
+  chmod +x "$bin_path"
+}
+
+install "$ASDF_INSTALL_TYPE" "$ASDF_INSTALL_VERSION" "$ASDF_INSTALL_PATH" 
+
