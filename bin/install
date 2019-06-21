@@ -15,7 +15,8 @@ install() {
   local install_path=$3
 
   if [ "$TMPDIR" = "" ]; then
-    local tmp_download_dir=$(mktemp -d -t elm_build_XXXXXX)
+    local tmp_download_dir
+    tmp_download_dir=$(mktemp -d -t elm_build_XXXXXX)
   else
     local tmp_download_dir=$TMPDIR
   fi
