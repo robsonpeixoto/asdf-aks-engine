@@ -1,4 +1,4 @@
-language: c
+language: bash
 script: asdf plugin-test aks-engine https://github.com/robsonpeixoto/asdf-aks-engine.git
 before_script:
   - git clone https://github.com/asdf-vm/asdf.git
